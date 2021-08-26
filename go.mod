@@ -22,7 +22,7 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.4
 	github.com/google/uuid v1.1.2
-	github.com/gophercloud/gophercloud v0.11.0
+	github.com/gophercloud/gophercloud v0.20.0
 	github.com/jackc/pgtype v1.7.0
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/julienschmidt/httprouter v1.3.0
