@@ -26,6 +26,10 @@ var rhelFamilyDistros = []rhelFamilyDistro{
 		name:   "centos",
 		distro: rhel84.NewCentos(),
 	},
+	{
+		name:   "rocky",
+		distro: rhel84.NewRocky(),
+	},
 }
 
 func TestFilenameFromType(t *testing.T) {
@@ -211,10 +215,15 @@ func TestImageType_Name(t *testing.T) {
 				if mapping.arch == "s390x" && dist.name == "centos" {
 					continue
 				}
+
+				if (mapping.arch == "s390x" || mapping.arch == "ppc64le") && dist.name == "rocky" {
+					continue
+				}
+
 				arch, err := dist.distro.GetArch(mapping.arch)
 				if assert.NoError(t, err) {
 					for _, imgName := range mapping.imgNames {
-						if imgName == "rhel-edge-commit" && dist.name == "centos" {
+						if imgName == "rhel-edge-commit" && (dist.name == "centos" || dist.name == "rocky") {
 							continue
 						}
 						imgType, err := arch.GetImageType(imgName)
@@ -502,6 +511,11 @@ func TestArchitecture_ListImageTypes(t *testing.T) {
 				if mapping.arch == "s390x" && dist.name == "centos" {
 					continue
 				}
+
+				if (mapping.arch == "s390x" || mapping.arch == "ppc64le") && dist.name == "rocky" {
+					continue
+				}
+
 				arch, err := dist.distro.GetArch(mapping.arch)
 				require.NoError(t, err)
 				imageTypes := arch.ListImageTypes()
@@ -528,11 +542,17 @@ func TestCentos_ListArches(t *testing.T) {
 	assert.Equal(t, []string{"aarch64", "ppc64le", "x86_64"}, arches)
 }
 
+func TestRocky_ListArches(t *testing.T) {
+	arches := rhel84.NewRocky().ListArches()
+	assert.Equal(t, []string{"aarch64", "x86_64"}, arches)
+}
+
 func TestRhel84_GetArch(t *testing.T) {
 	arches := []struct {
 		name                  string
 		errorExpected         bool
 		errorExpectedInCentos bool
+		errorExpectedInRocky  bool
 	}{
 		{
 			name: "x86_64",
@@ -541,11 +561,13 @@ func TestRhel84_GetArch(t *testing.T) {
 			name: "aarch64",
 		},
 		{
-			name: "ppc64le",
+			name:                 "ppc64le",
+			errorExpectedInRocky: true,
 		},
 		{
 			name:                  "s390x",
 			errorExpectedInCentos: true,
+			errorExpectedInRocky:  true,
 		},
 		{
 			name:          "foo-arch",
@@ -557,7 +579,8 @@ func TestRhel84_GetArch(t *testing.T) {
 		t.Run(dist.name, func(t *testing.T) {
 			for _, a := range arches {
 				actualArch, err := dist.distro.GetArch(a.name)
-				if a.errorExpected || (a.errorExpectedInCentos && dist.name == "centos") {
+				if a.errorExpected || (a.errorExpectedInCentos && dist.name == "centos") ||
+					(a.errorExpectedInRocky && dist.name == "rocky") {
 					assert.Nil(t, actualArch)
 					assert.Error(t, err)
 				} else {
@@ -579,12 +602,20 @@ func TestCentos_Name(t *testing.T) {
 	assert.Equal(t, "centos-8", distro.Name())
 }
 
+func TestRocky_Name(t *testing.T) {
+	distro := rhel84.NewRocky()
+	assert.Equal(t, "rocky-8", distro.Name())
+}
+
 func TestRhel84_ModulePlatformID(t *testing.T) {
 	distro := rhel84.New()
 	assert.Equal(t, "platform:el8", distro.ModulePlatformID())
 
 	centos := rhel84.NewCentos()
 	assert.Equal(t, "platform:el8", centos.ModulePlatformID())
+
+	rocky := rhel84.NewRocky()
+	assert.Equal(t, "platform:el8", rocky.ModulePlatformID())
 }
 
 func TestRhel84_KernelOption(t *testing.T) {

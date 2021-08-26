@@ -21,6 +21,7 @@ import (
 
 const defaultName = "rhel-84"
 const defaultCentosName = "centos-8"
+const defaultRockyName = "rocky-8"
 const releaseVersion = "8"
 const modulePlatformID = "platform:el8"
 const ostreeRef = "rhel/8/%s/edge"
@@ -32,6 +33,7 @@ type distribution struct {
 	arches           map[string]architecture
 	buildPackages    []string
 	isCentos         bool
+	isRocky          bool
 }
 
 type architecture struct {
@@ -216,7 +218,7 @@ func (t *imageType) Packages(bp blueprint.Blueprint) ([]string, []string) {
 		packages = append(packages, t.arch.bootloaderPackages...)
 	}
 
-	if t.arch.distro.isCentos {
+	if t.arch.distro.isCentos || t.arch.distro.isRocky {
 		// drop insights from centos, it's not available there
 		packages = removePackage(packages, "insights-client")
 	}
@@ -348,6 +350,8 @@ func (t *imageType) pipeline(c *blueprint.Customizations, options distro.ImageOp
 	p := &osbuild.Pipeline{}
 	if t.arch.distro.isCentos {
 		p.SetBuild(t.buildPipeline(repos, *t.arch, buildPackageSpecs), "org.osbuild.centos8")
+	} else if t.arch.distro.isRocky {
+		p.SetBuild(t.buildPipeline(repos, *t.arch, buildPackageSpecs), "org.osbuild.rocky84")
 	} else {
 		p.SetBuild(t.buildPipeline(repos, *t.arch, buildPackageSpecs), "org.osbuild.rhel84")
 	}
@@ -616,6 +620,8 @@ func (t *imageType) grub2StageOptions(pt *disk.PartitionTable, kernelOptions str
 		var vendor string
 		if t.arch.distro.isCentos {
 			vendor = "centos"
+		} else if t.arch.distro.isRocky {
+			vendor = "rocky"
 		} else {
 			vendor = "redhat"
 		}
@@ -848,22 +854,30 @@ func removePackage(packages []string, packageToRemove string) []string {
 
 // New creates a new distro object, defining the supported architectures and image types
 func New() distro.Distro {
-	return newDistro(defaultName, modulePlatformID, ostreeRef, false)
+	return newDistro(defaultName, modulePlatformID, ostreeRef, false, false)
 }
 
 func NewCentos() distro.Distro {
-	return newDistro(defaultCentosName, modulePlatformID, ostreeRef, true)
+	return newDistro(defaultCentosName, modulePlatformID, ostreeRef, true, false)
+}
+
+func NewRocky() distro.Distro {
+	return newDistro(defaultRockyName, modulePlatformID, ostreeRef, false, true)
 }
 
 func NewHostDistro(name, modulePlatformID, ostreeRef string) distro.Distro {
-	return newDistro(name, modulePlatformID, ostreeRef, false)
+	return newDistro(name, modulePlatformID, ostreeRef, false, false)
 }
 
 func NewCentosHostDistro(name, modulePlatformID, ostreeRef string) distro.Distro {
-	return newDistro(name, modulePlatformID, ostreeRef, true)
+	return newDistro(name, modulePlatformID, ostreeRef, true, false)
 }
 
-func newDistro(name, modulePlatformID, ostreeRef string, isCentos bool) distro.Distro {
+func NewRockyHostDistro(name, modulePlatformID, ostreeRef string) distro.Distro {
+	return newDistro(name, modulePlatformID, ostreeRef, false, true)
+}
+
+func newDistro(name, modulePlatformID, ostreeRef string, isCentos bool, isRocky bool) distro.Distro {
 	const GigaByte = 1024 * 1024 * 1024
 
 	edgeImgTypeX86_64 := imageType{
@@ -1271,6 +1285,7 @@ func newDistro(name, modulePlatformID, ostreeRef string, isCentos bool) distro.D
 			"xz",
 		},
 		isCentos:         isCentos,
+		isRocky:          isRocky,
 		name:             name,
 		modulePlatformID: modulePlatformID,
 		ostreeRef:        ostreeRef,
@@ -1553,7 +1568,7 @@ func newDistro(name, modulePlatformID, ostreeRef string, isCentos bool) distro.D
 		vmdkImgType,
 	)
 
-	if !isCentos {
+	if !isCentos && !isRocky {
 		x8664.addImageTypes(edgeImgTypeX86_64)
 		x8664.addS2ImageTypes(edgeOCIImgTypeX86_64, edgeInstImgTypeX86_64)
 	}
@@ -1577,7 +1592,7 @@ func newDistro(name, modulePlatformID, ostreeRef string, isCentos bool) distro.D
 		tarImgType,
 	)
 
-	if !isCentos {
+	if !isCentos && !isRocky {
 		aarch64.addImageTypes(edgeImgTypeAarch64)
 		aarch64.addS2ImageTypes(edgeOCIImgTypeAarch64)
 	}
@@ -1617,10 +1632,12 @@ func newDistro(name, modulePlatformID, ostreeRef string, isCentos bool) distro.D
 		qcow2ImageType,
 	)
 
-	r.addArches(x8664, aarch64, ppc64le)
-
-	if !isCentos {
-		r.addArches(s390x)
+	if isCentos {
+		r.addArches(x8664, aarch64, ppc64le)
+	} else if isRocky {
+		r.addArches(x8664, aarch64)
+	} else {
+		r.addArches(x8664, aarch64, ppc64le, s390x)
 	}
 
 	return &r

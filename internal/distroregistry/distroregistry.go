@@ -22,6 +22,7 @@ var supportedDistros = []supportedDistro{
 	{rhel8.New, rhel8.NewHostDistro},
 	{rhel84.New, rhel84.NewHostDistro},
 	{rhel84.NewCentos, rhel84.NewCentosHostDistro},
+	{rhel84.NewRocky, rhel84.NewRockyHostDistro},
 	{rhel85.New, rhel85.NewHostDistro},
 	{rhel85.NewRHEL86, rhel85.NewHostDistro},
 	{rhel90.New, rhel90.NewHostDistro},
