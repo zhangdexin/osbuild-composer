@@ -41,6 +41,9 @@ type ListOpts struct {
 	// Visibility filters on the visibility of the image.
 	Visibility ImageVisibility `q:"visibility"`
 
+	// Hidden filters on the hidden status of the image.
+	Hidden bool `q:"os_hidden"`
+
 	// MemberStatus filters on the member status of the image.
 	MemberStatus ImageMemberStatus `q:"member_status"`
 
@@ -154,6 +157,9 @@ type CreateOpts struct {
 
 	// Visibility defines who can see/use the image.
 	Visibility *ImageVisibility `json:"visibility,omitempty"`
+
+	// Hidden is whether the image is listed in default image list or not.
+	Hidden *bool `json:"os_hidden,omitempty"`
 
 	// Tags is a set of image tags.
 	Tags []string `json:"tags,omitempty"`
@@ -283,6 +289,20 @@ func (r UpdateVisibility) ToImagePatchMap() map[string]interface{} {
 	}
 }
 
+// ReplaceImageHidden represents an updated os_hidden property request.
+type ReplaceImageHidden struct {
+	NewHidden bool
+}
+
+// ToImagePatchMap assembles a request body based on ReplaceImageHidden.
+func (r ReplaceImageHidden) ToImagePatchMap() map[string]interface{} {
+	return map[string]interface{}{
+		"op":    "replace",
+		"path":  "/os_hidden",
+		"value": r.NewHidden,
+	}
+}
+
 // ReplaceImageName represents an updated image_name property request.
 type ReplaceImageName struct {
 	NewName string
@@ -350,6 +370,20 @@ func (r ReplaceImageMinRam) ToImagePatchMap() map[string]interface{} {
 		"op":    "replace",
 		"path":  "/min_ram",
 		"value": r.NewMinRam,
+	}
+}
+
+// ReplaceImageProtected represents an updated protected property request.
+type ReplaceImageProtected struct {
+	NewProtected bool
+}
+
+// ToImagePatchMap assembles a request body based on ReplaceImageProtected
+func (r ReplaceImageProtected) ToImagePatchMap() map[string]interface{} {
+	return map[string]interface{}{
+		"op":    "replace",
+		"path":  "/protected",
+		"value": r.NewProtected,
 	}
 }
 
