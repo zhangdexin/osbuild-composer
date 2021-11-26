@@ -36,7 +36,7 @@ require (
 	github.com/kolo/xmlrpc v0.0.0-20201022064351-38db28db192b
 	github.com/labstack/echo/v4 v4.6.1
 	github.com/labstack/gommon v0.3.0
-	github.com/openshift-online/ocm-sdk-go v0.1.208
+	github.com/openshift-online/ocm-sdk-go v0.1.220
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/common v0.30.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
@@ -52,5 +52,4 @@ require (
 	google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/ini.v1 v1.63.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
