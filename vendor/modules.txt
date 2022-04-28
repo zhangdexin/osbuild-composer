@@ -147,6 +147,8 @@ github.com/deepmap/oapi-codegen/pkg/types
 github.com/deepmap/oapi-codegen/pkg/util
 # github.com/dimchansky/utfbom v1.1.1
 github.com/dimchansky/utfbom
+# github.com/dougm/pretty v0.0.0-20171025230240-2ee9d7453c02
+github.com/dougm/pretty
 # github.com/getkin/kin-openapi v0.13.0
 ## explicit
 github.com/getkin/kin-openapi/jsoninfo
@@ -245,9 +247,7 @@ github.com/julienschmidt/httprouter
 # github.com/kolo/xmlrpc v0.0.0-20201022064351-38db28db192b
 ## explicit
 github.com/kolo/xmlrpc
-# github.com/kr/pretty v0.2.1
-github.com/kr/pretty
-# github.com/kr/text v0.1.0
+# github.com/kr/text v0.2.0
 github.com/kr/text
 # github.com/labstack/echo/v4 v4.6.1
 ## explicit
@@ -324,7 +324,7 @@ github.com/ubccr/kerby/khttp
 github.com/valyala/bytebufferpool
 # github.com/valyala/fasttemplate v1.2.1
 github.com/valyala/fasttemplate
-# github.com/vmware/govmomi v0.26.1
+# github.com/vmware/govmomi v0.28.0
 ## explicit
 github.com/vmware/govmomi/cns
 github.com/vmware/govmomi/cns/methods
@@ -339,6 +339,7 @@ github.com/vmware/govmomi/govc/vm
 github.com/vmware/govmomi/govc/vm/guest
 github.com/vmware/govmomi/guest
 github.com/vmware/govmomi/guest/toolbox
+github.com/vmware/govmomi/history
 github.com/vmware/govmomi/internal
 github.com/vmware/govmomi/list
 github.com/vmware/govmomi/nfc
