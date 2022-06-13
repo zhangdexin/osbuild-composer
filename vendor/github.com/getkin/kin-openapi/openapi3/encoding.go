@@ -8,14 +8,15 @@ import (
 )
 
 // Encoding is specified by OpenAPI/Swagger 3.0 standard.
+// See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#encodingObject
 type Encoding struct {
 	ExtensionProps
 
-	ContentType   string                `json:"contentType,omitempty" yaml:"contentType,omitempty"`
-	Headers       map[string]*HeaderRef `json:"headers,omitempty" yaml:"headers,omitempty"`
-	Style         string                `json:"style,omitempty" yaml:"style,omitempty"`
-	Explode       *bool                 `json:"explode,omitempty" yaml:"explode,omitempty"`
-	AllowReserved bool                  `json:"allowReserved,omitempty" yaml:"allowReserved,omitempty"`
+	ContentType   string  `json:"contentType,omitempty" yaml:"contentType,omitempty"`
+	Headers       Headers `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Style         string  `json:"style,omitempty" yaml:"style,omitempty"`
+	Explode       *bool   `json:"explode,omitempty" yaml:"explode,omitempty"`
+	AllowReserved bool    `json:"allowReserved,omitempty" yaml:"allowReserved,omitempty"`
 }
 
 func NewEncoding() *Encoding {
@@ -38,10 +39,12 @@ func (encoding *Encoding) WithHeaderRef(name string, ref *HeaderRef) *Encoding {
 	return encoding
 }
 
+// MarshalJSON returns the JSON encoding of Encoding.
 func (encoding *Encoding) MarshalJSON() ([]byte, error) {
 	return jsoninfo.MarshalStrictStruct(encoding)
 }
 
+// UnmarshalJSON sets Encoding to a copy of data.
 func (encoding *Encoding) UnmarshalJSON(data []byte) error {
 	return jsoninfo.UnmarshalStrictStruct(data, encoding)
 }
@@ -61,7 +64,8 @@ func (encoding *Encoding) SerializationMethod() *SerializationMethod {
 	return sm
 }
 
-func (encoding *Encoding) Validate(c context.Context) error {
+// Validate returns an error if Encoding does not comply with the OpenAPI spec.
+func (encoding *Encoding) Validate(ctx context.Context) error {
 	if encoding == nil {
 		return nil
 	}
@@ -69,7 +73,7 @@ func (encoding *Encoding) Validate(c context.Context) error {
 		if err := ValidateIdentifier(k); err != nil {
 			return nil
 		}
-		if err := v.Validate(c); err != nil {
+		if err := v.Validate(ctx); err != nil {
 			return nil
 		}
 	}
@@ -86,7 +90,7 @@ func (encoding *Encoding) Validate(c context.Context) error {
 		sm.Style == SerializationDeepObject && sm.Explode:
 		// it is a valid
 	default:
-		return fmt.Errorf("Serialization method with style=%q and explode=%v is not supported by media type", sm.Style, sm.Explode)
+		return fmt.Errorf("serialization method with style=%q and explode=%v is not supported by media type", sm.Style, sm.Explode)
 	}
 
 	return nil
