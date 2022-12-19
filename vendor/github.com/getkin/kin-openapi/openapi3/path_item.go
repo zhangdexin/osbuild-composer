@@ -4,12 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/getkin/kin-openapi/jsoninfo"
 )
 
+// PathItem is specified by OpenAPI/Swagger standard version 3.
+// See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#path-item-object
 type PathItem struct {
-	ExtensionProps
+	ExtensionProps `json:"-" yaml:"-"`
+
 	Ref         string     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 	Summary     string     `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description string     `json:"description,omitempty" yaml:"description,omitempty"`
@@ -26,10 +30,12 @@ type PathItem struct {
 	Parameters  Parameters `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
 
+// MarshalJSON returns the JSON encoding of PathItem.
 func (pathItem *PathItem) MarshalJSON() ([]byte, error) {
 	return jsoninfo.MarshalStrictStruct(pathItem)
 }
 
+// UnmarshalJSON sets PathItem to a copy of data.
 func (pathItem *PathItem) UnmarshalJSON(data []byte) error {
 	return jsoninfo.UnmarshalStrictStruct(data, pathItem)
 }
@@ -87,7 +93,7 @@ func (pathItem *PathItem) GetOperation(method string) *Operation {
 	case http.MethodTrace:
 		return pathItem.Trace
 	default:
-		panic(fmt.Errorf("Unsupported HTTP method '%s'", method))
+		panic(fmt.Errorf("unsupported HTTP method %q", method))
 	}
 }
 
@@ -112,14 +118,25 @@ func (pathItem *PathItem) SetOperation(method string, operation *Operation) {
 	case http.MethodTrace:
 		pathItem.Trace = operation
 	default:
-		panic(fmt.Errorf("Unsupported HTTP method '%s'", method))
+		panic(fmt.Errorf("unsupported HTTP method %q", method))
 	}
 }
 
-func (pathItem *PathItem) Validate(c context.Context) error {
-	for _, operation := range pathItem.Operations() {
-		if err := operation.Validate(c); err != nil {
-			return err
+// Validate returns an error if PathItem does not comply with the OpenAPI spec.
+func (pathItem *PathItem) Validate(ctx context.Context, opts ...ValidationOption) error {
+	ctx = WithValidationOptions(ctx, opts...)
+
+	operations := pathItem.Operations()
+
+	methods := make([]string, 0, len(operations))
+	for method := range operations {
+		methods = append(methods, method)
+	}
+	sort.Strings(methods)
+	for _, method := range methods {
+		operation := operations[method]
+		if err := operation.Validate(ctx); err != nil {
+			return fmt.Errorf("invalid operation %s: %v", method, err)
 		}
 	}
 	return nil
