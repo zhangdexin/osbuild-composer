@@ -7,8 +7,8 @@ import (
 )
 
 // MarshalStrictStruct function:
-//   * Marshals struct fields, ignoring MarshalJSON() and fields without 'json' tag.
-//   * Correctly handles StrictStruct semantics.
+//   - Marshals struct fields, ignoring MarshalJSON() and fields without 'json' tag.
+//   - Correctly handles StrictStruct semantics.
 func MarshalStrictStruct(value StrictStruct) ([]byte, error) {
 	encoder := NewObjectEncoder()
 	if err := value.EncodeWith(encoder, value); err != nil {
@@ -23,7 +23,7 @@ type ObjectEncoder struct {
 
 func NewObjectEncoder() *ObjectEncoder {
 	return &ObjectEncoder{
-		result: make(map[string]json.RawMessage, 8),
+		result: make(map[string]json.RawMessage),
 	}
 }
 
@@ -59,11 +59,11 @@ func (encoder *ObjectEncoder) EncodeStructFieldsAndExtensions(value interface{})
 	// Follow "encoding/json" semantics
 	if reflection.Kind() != reflect.Ptr {
 		// Panic because this is a clear programming error
-		panic(fmt.Errorf("Value %s is not a pointer", reflection.Type().String()))
+		panic(fmt.Errorf("value %s is not a pointer", reflection.Type().String()))
 	}
 	if reflection.IsNil() {
 		// Panic because this is a clear programming error
-		panic(fmt.Errorf("Value %s is nil", reflection.Type().String()))
+		panic(fmt.Errorf("value %s is nil", reflection.Type().String()))
 	}
 
 	// Take the element
@@ -146,7 +146,7 @@ iteration:
 				continue iteration
 			}
 		default:
-			panic(fmt.Errorf("Field '%s' has unsupported type %s", field.JSONName, field.Type.String()))
+			panic(fmt.Errorf("field %q has unsupported type %s", field.JSONName, field.Type.String()))
 		}
 
 		// No special treament is needed
