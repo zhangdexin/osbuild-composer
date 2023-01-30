@@ -190,11 +190,11 @@ func (c *Client) QueryAllVolume(ctx context.Context, queryFilter cnstypes.CnsQue
 }
 
 // QueryVolumeAsync calls the CNS QueryAsync API and return a task, from which we can extract CnsQueryResult
-func (c *Client) QueryVolumeAsync(ctx context.Context, queryFilter cnstypes.CnsQueryFilter, querySelection cnstypes.CnsQuerySelection) (*object.Task, error) {
+func (c *Client) QueryVolumeAsync(ctx context.Context, queryFilter cnstypes.CnsQueryFilter, querySelection *cnstypes.CnsQuerySelection) (*object.Task, error) {
 	req := cnstypes.CnsQueryAsync{
 		This:      CnsVolumeManagerInstance,
 		Filter:    queryFilter,
-		Selection: &querySelection,
+		Selection: querySelection,
 	}
 	res, err := methods.CnsQueryAsync(ctx, c, &req)
 	if err != nil {
@@ -264,6 +264,19 @@ func (c *Client) QuerySnapshots(ctx context.Context, snapshotQueryFilter cnstype
 		SnapshotQueryFilter: snapshotQueryFilter,
 	}
 	res, err := methods.CnsQuerySnapshots(ctx, c, &req)
+	if err != nil {
+		return nil, err
+	}
+	return object.NewTask(c.vim25Client, res.Returnval), nil
+}
+
+// ReconfigVolumePolicy calls the CnsReconfigVolumePolicy API
+func (c *Client) ReconfigVolumePolicy(ctx context.Context, PolicyReconfigSpecs []cnstypes.CnsVolumePolicyReconfigSpec) (*object.Task, error) {
+	req := cnstypes.CnsReconfigVolumePolicy{
+		This:                      CnsVolumeManagerInstance,
+		VolumePolicyReconfigSpecs: PolicyReconfigSpecs,
+	}
+	res, err := methods.CnsReconfigVolumePolicy(ctx, c, &req)
 	if err != nil {
 		return nil, err
 	}

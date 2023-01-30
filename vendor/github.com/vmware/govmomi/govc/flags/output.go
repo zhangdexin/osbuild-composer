@@ -29,7 +29,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kr/pretty"
+	"github.com/dougm/pretty"
 
 	"github.com/vmware/govmomi/task"
 	"github.com/vmware/govmomi/vim25/progress"
@@ -106,8 +106,14 @@ func (flag *OutputFlag) Write(b []byte) (int, error) {
 		return 0, nil
 	}
 
-	n, err := os.Stdout.Write(b)
-	os.Stdout.Sync()
+	w := flag.Out
+	if w == nil {
+		w = os.Stdout
+	}
+	n, err := w.Write(b)
+	if w == os.Stdout {
+		os.Stdout.Sync()
+	}
 	return n, err
 }
 
